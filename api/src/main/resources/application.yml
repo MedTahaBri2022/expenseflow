@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: expenseflow
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/expenseflow}
+    username: ${DATABASE_USER:expenseflow}
+    password: ${DATABASE_PASSWORD:expenseflow}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    locations: classpath:db/migration
+  mvc:
+    problemdetails:
+      enabled: true
+
+server:
+  error:
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+expenseflow:
+  # HMAC key used to sign the access tokens: at least 32 bytes. The default is
+  # for local development only; production must set JWT_SECRET.
+  jwt-secret: ${JWT_SECRET:local-development-secret-change-me-0123456789}
+  token-ttl: ${TOKEN_TTL:PT8H}
+  # Claims above this total need a second approval by the finance team.
+  finance-approval-threshold: ${FINANCE_APPROVAL_THRESHOLD:10000.00}
+  # Creates demo users and claims on an empty database.
+  demo-data: ${DEMO_DATA:false}
+  cors-origins: ${CORS_ORIGINS:http://localhost:5180}

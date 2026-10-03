@@ -1,0 +1,45 @@
+# Local stack: PostgreSQL, the API (with demo data) and the web app.
+#   docker compose up -d --build      → http://localhost:8081
+# The secrets below are development defaults; override them in a .env file.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: expenseflow
+      POSTGRES_USER: expenseflow
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-expenseflow}
+    ports:
+      - '5433:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U expenseflow']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./api
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/expenseflow
+      DATABASE_USER: expenseflow
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-expenseflow}
+      JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-me-0123456789}
+      DEMO_DATA: 'true'
+      CORS_ORIGINS: http://localhost:5180
+    ports:
+      - '8080:8080'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build: ./web
+    ports:
+      - '8081:80'
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
